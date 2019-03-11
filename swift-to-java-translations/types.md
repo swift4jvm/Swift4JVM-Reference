@@ -109,7 +109,7 @@ func take<T>() where T: A & B & C { /* ... */ }
 A it;
 ((B) it).methodFromB();
 (B & C) it;
-void take<T extends A & B & C>() { /* ... */ }
+<T extends A & B & C> void take() { /* ... */ }
 ```
 {% endtab %}
 {% endtabs %}
