@@ -7,4 +7,7 @@
   * [Expressions](swift-to-java-translations/expressions.md)
   * [Statements](swift-to-java-translations/statements.md)
   * [Declarations](swift-to-java-translations/declarations.md)
+  * [Attributes](swift-to-java-translations/attributes.md)
+  * [Patterns](swift-to-java-translations/patterns.md)
+  * [Generic Parameters and Arguments](swift-to-java-translations/generic-parameters-and-arguments.md)
 
