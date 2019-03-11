@@ -5,4 +5,6 @@
   * [Lexical Structure](swift-to-java-translations/lexical-structure.md)
   * [Types](swift-to-java-translations/types.md)
   * [Expressions](swift-to-java-translations/expressions.md)
+  * [Statements](swift-to-java-translations/statements.md)
+  * [Declarations](swift-to-java-translations/declarations.md)
 
