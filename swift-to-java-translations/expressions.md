@@ -347,7 +347,69 @@ The playground literals `#colorLiteral`, `#fileLiteral` and `#imageLiteral` are 
 
 #### Self Expression
 
+All instances of self expressions can be translated by replacing `self` or `self.init` with `this`.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+self
+self.memberName
+self[arguments]
+self(arguments)
+self.init(arguments)
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+this
+this.memberName
+this.get(arguments)
+this(arguments)
+this(arguments)
+```
+{% endtab %}
+{% endtabs %}
+
+Assignment to self in mutating methods translates to assignment to all fields, if possible without an instance creation. Since `self =` can only occur within the struct itself, it is not necessary to use `copyTo`.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+self = somePoint
+self = Point(x: 1, y: 2)
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+this.x = somePoint.x; this.y = somePoint.y
+this.x = 1; this.y = 2
+```
+{% endtab %}
+{% endtabs %}
+
 #### Superclass Expression
+
+Superclass expressions can be translated directly, replacing `super.init` with just `super`.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+super.memberName
+super[arguments]
+super.init(arguments)
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+super.memberName
+super.get(arguments)
+super(arguments)
+```
+{% endtab %}
+{% endtabs %}
 
 #### Closure Expression
 
