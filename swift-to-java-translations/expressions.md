@@ -245,7 +245,8 @@ The `Runtime.instanceOf` method can be implemented as follows \(refer to the hin
 
 ```java
 static boolean instanceOf(Object o, Class protocolType) {
-    return o != null && findExtensionProxyClass(o, protocolType) != null;
+    return o != null && (protocolType.isInstance(o)
+           || findExtensionProxyClass(o, protocolType) != null);
 }
 ```
 {% endhint %}
@@ -272,27 +273,27 @@ b as P
 {% endtab %}
 {% endtabs %}
 
-The `as?` operator can be translated easily by treating it as a combination of `is` and `as!`. The translation can be done using the rules for these operators, as given above and below, after performing the following AST transformation.
+The `as?` operator can be translated easily by treating it as a combination of `is` and `as!`. The translation can be done using the rules for these operators, as given above and below, after performing the following AST transformation:
 
 ```swift
-<expr> as? <type>
+expr as? Type
 // =>
-(<expr> is <type>) ? (<expr> as! <type>) : nil
+(expr is Type>) ? (expr as! Type) : nil
 ```
 
-Temporary variables can be used to ensure `<expr>` is evaluated only once.
+Temporary variables should be used to ensure `expr` is evaluated only once.
 
 {% hint style="info" %}
-A more efficient implementation for when the RHS is a protocol would be
+A more efficient implementation when the RHS is a protocol would be
 
 ```java
-Runtime.castOpt(<expr>, <type>.class)
+Runtime.castOpt(expr, Type.class)
 ```
 
 instead of
 
 ```java
-Runtime.instanceOf(<expr>) ? Runtime.cast(<expr>, <type>.class) : null
+Runtime.instanceOf(expr) ? Runtime.cast(expr, type.class) : null
 ```
 
 because the extension proxy class needs to be searched only once. `castOpt` can be implemented like `cast`, with `return null` in place of `throw new ClassCastException()`.
