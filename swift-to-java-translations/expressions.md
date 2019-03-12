@@ -337,6 +337,14 @@ static <T> T cast(Object o, Class<T> protocolType) {
 
 #### Literal Expression
 
+Ordinary literal expressions like strings, numbers and booleans are translated according to the section in [Lexical Structure](lexical-structure.md#literals).
+
+The `#file`, `#line`, `#column` and `#function` literals are treated as if they were string or integer literals with the appropriate value. `#dsohandle` cannot be used on the JVM and is therefore an error.
+
+The translation of array and dictionary literals is TBD.
+
+The playground literals `#colorLiteral`, `#fileLiteral` and `#imageLiteral` are not applicable on the JVM.
+
 #### Self Expression
 
 #### Superclass Expression
