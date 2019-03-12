@@ -62,6 +62,8 @@ The `try?` operator discards exceptions and returns `nil` as its result when one
 {% tab title="Swift" %}
 ```swift
 let it = try? someMethod()
+
+
 ```
 {% endtab %}
 
@@ -80,6 +82,11 @@ catch (Exception ex) { it = null; }
 if let it = try? someMethod() {
     /* ... */
 }
+
+
+
+
+
 ```
 {% endtab %}
 
@@ -87,8 +94,7 @@ if let it = try? someMethod() {
 ```java
 {
     final Integer t1;
-    try { it = someMethod(); }
-    catch (Exception ex) { it = null; }
+    try { t1 = someMethod(); } catch (Exception ex) { t1 = null; }
     if (t1 != null) {
         final int it = t1.intValue();
         /* ... */
@@ -169,10 +175,7 @@ The assignment operator, in its basic form, is kept as-is. Tuple destructuring t
 
 {% tab title="Java" %}
 ```java
-a = "test";
-// 9.45 (discarded)
-b = 12;
-c = 3;
+a = "test"; /* 9.45 (discarded) */; b = 12; c = 3;
 ```
 {% endtab %}
 {% endtabs %}
@@ -183,6 +186,9 @@ If needed, temporary variables are used to hold the tuple objects.
 {% tab title="Swift" %}
 ```swift
 (a, _, (b, c)) = someMethod()
+
+
+
 ```
 {% endtab %}
 
@@ -191,8 +197,7 @@ If needed, temporary variables are used to hold the tuple objects.
 Tuple<String, Double, Tuple<Int, Int>> t1 = someMethod();
 a = t1._0
 Tuple<Int, Int> t2 = t1._2
-b = t2._0
-c = t2._1
+b = t2._0; c = t2._1
 ```
 {% endtab %}
 {% endtabs %}
