@@ -74,6 +74,32 @@ description: 'https://docs.swift.org/swift-book/ReferenceManual/Declarations.htm
 
 ### Extension Declaration
 
+{% hint style="info" %}
+An example method that can be used to find the extension proxy class for a given object and protocol type is shown below. It assumes the proxy class uses the qualified name `mod.b.Ext$B$mod_p_P`, where `mod.b.B` and `mod.p.P` are the qualified names of `B` and `P`, respectively.
+
+```java
+static Class findExtensionProxyClass(Object o, Class protocolType) {
+    Class objType = o.getClass();
+    String protocolSuffix = "$" + protocolType.getName().replace('.', '_')
+    for (Class superType : /* each super-class of o.getClass */) {
+        String searchPath = /* superType.getName() with Ext$ inserted */;
+        if (searchPath.startsWith("java.") {
+            // extensions to java classes are placed in package _java.
+            searchPath = "_" + searchPath;
+        }
+        searchPath += protocolSuffix;
+        try {
+            return Class.forName(searchPath);
+        }
+        catch (ClassNotFoundException ignored) {
+            continue;
+        }
+    }
+    return null;
+}
+```
+{% endhint %}
+
 #### Conditional Conformance
 
 **Overridden Requirements Aren’t Used in Some Generic Contexts**

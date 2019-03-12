@@ -154,11 +154,184 @@ foo(bar(), lambda1(bal));
 
 ### Binary Expressions
 
+Binary expressions are translated to method calls like prefix expressions. See [Operators](lexical-structure.md#operators) for a table of operator symbol to name mappings.
+
 #### Assignment Operator
+
+The assignment operator, in its basic form, is kept as-is. Tuple destructuring translates to a sequence of assignments.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+(a, _, (b, c)) = ("test", 9.45, (12, 3))
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+a = "test";
+// 9.45 (discarded)
+b = 12;
+c = 3;
+```
+{% endtab %}
+{% endtabs %}
+
+If needed, temporary variables are used to hold the tuple objects.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+(a, _, (b, c)) = someMethod()
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+Tuple<String, Double, Tuple<Int, Int>> t1 = someMethod();
+a = t1._0
+Tuple<Int, Int> t2 = t1._2
+b = t2._0
+c = t2._1
+```
+{% endtab %}
+{% endtabs %}
 
 #### Ternary Conditional Operator
 
+The ternary conditional operator is translated as-is.
+
 #### Type-Casting Operators
+
+Type-casting operators require a special translation strategy because of protocol adoption via extensions. If a class implements a protocol only due to an extension that is not also in the same module, a proxy implementation needs to be used. The following examples refer to classes `A` and `B`, protocols `P` and `Q`, and the variables `a` and `b`, as defined below.
+
+```swift
+class A: P
+class B: A, Q
+protocol P
+protocol Q
+extension B: R // in another module
+var a: A
+var b: B
+```
+
+The behavior of the `is` operator depends on whether the RHS is a protocol or not. If it isn't, then the check translates to `instanceof`. Protocol conformance, however, is checked with a special runtime method, which dynamically checks the existence of an extension proxy class.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+a is B
+a is Q
+b is Q
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+a instanceof B
+Runtime.instanceOf(a, Q.class)
+Runtime.instanceOf(b, Q.class)
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="info" %}
+The `Runtime.instanceOf` method can be implemented as follows \(refer to the hint in [Extensions ](declarations.md#extension-declaration)for the definition of `findExtensionProxyClass`\):
+
+```java
+static boolean instanceOf(Object o, Class protocolType) {
+    return o != null && findExtensionProxyClass(o, protocolType) != null;
+}
+```
+{% endhint %}
+
+The `as` operator is only used to upcast or specify an explicit type for conversions. Since it does not allow downcasts, no special handling for the aforementioned extension scenario is required. It translates directly to regular casts or the appropriate conversion.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+b as A
+b as P
+1.5 as Float
+2 as Comparable
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+(B) a
+(P) b
+1.5F
+(Comparable) Integer.valueOf(2)
+```
+{% endtab %}
+{% endtabs %}
+
+The `as?` operator can be translated easily by treating it as a combination of `is` and `as!`. The translation can be done using the rules for these operators, as given above and below, after performing the following AST transformation.
+
+```swift
+<expr> as? <type>
+// =>
+(<expr> is <type>) ? (<expr> as! <type>) : nil
+```
+
+Temporary variables can be used to ensure `<expr>` is evaluated only once.
+
+{% hint style="info" %}
+A more efficient implementation for when the RHS is a protocol would be
+
+```java
+Runtime.castOpt(<expr>, <type>.class)
+```
+
+instead of
+
+```java
+Runtime.instanceOf(<expr>) ? Runtime.cast(<expr>, <type>.class) : null
+```
+
+because the extension proxy class needs to be searched only once. `castOpt` can be implemented like `cast`, with `return null` in place of `throw new ClassCastException()`.
+{% endhint %}
+
+The last type-casting operator is `as!`. It translates to a regular cast if possible, and uses a special runtime method in the same cases as the `is` operator.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+a as! B
+a as! Q
+b as! Q
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+(B) a
+Runtime.cast(a, Q.class)
+Runtime.cast(b, Q.class)
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="info" %}
+The `Runtime.cast` method can be implemented as follows \(refer to the hint in [Extensions ](declarations.md#extension-declaration)for the definition of `findExtensionProxyClass`\):
+
+```java
+static <T> T cast(Object o, Class<T> protocolType) {
+    if (o == null) {
+        return null;
+    }
+    if (protocolType.isInstance(o)) {
+        return protocolType.cast(o);
+    }
+    Class proxyClass = findExtensionProxyClass(o, protocolType);
+    if (proxyClass == null) {
+        throw new ClassCastException();
+    }
+    return /* new proxyClass(o), using reflection */;
+}
+```
+{% endhint %}
 
 ### Primary Expressions
 
