@@ -419,35 +419,233 @@ super(arguments)
 
 #### Closure Expression
 
+TBD
+
 **Capture Lists**
+
+TBD
 
 #### Implicit Member Expression
 
+Implicit member expressions are syntactic sugar, so their translation depends on their qualified form. See [Explicit Member Expression](expressions.md#explicit-member-expression).
+
 #### Parenthesized Expression
+
+Parenthesized expressions behave the same in both languages.
 
 #### Tuple Expression
 
+TBD
+
 #### Wildcard Expression
+
+Wildcard expressions can only be used as the target of an assignment or destructuring. See [Assignment Operator](expressions.md#assignment-operator).
 
 #### Key-Path Expression
 
+TBD
+
 #### Selector Expression
 
+TBD
+
 #### Key-Path String Expression
+
+TBD
 
 ### Postfix Expressions
 
 #### Function Call Expression
 
+Function call expressions are technically a call applied to a member reference. As such, the translation is the translation of the member access according to [Explicit Member Expressions](expressions.md#explicit-member-expression), and a call to the relevant functional method of the resulting function type. In practice, the optimizer should take care of the lambda creation followed by the functional method call.
+
+Trailing closures behave as if they were the last argument within the argument list. The special rule for operators is translated using lambda expressions \(see [Closure Expressions](expressions.md#closure-expression)\).
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+someFunction(x: x, f: {$0 == 13})
+someFunction(x: x) {$0 == 13}
+myData.someMethod() {$0 == 13}
+myData.someMethod {$0 == 13}
+someClosure()
+someFunction(op: +)
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+someFunction(x, $0 -> $0 == 13)
+someFunction(x, $0 -> $0 == 13)
+myData.someMethod($0 -> $0 == 13)
+myData.someMethod($0 -> $0 == 13)
+someClosure.apply()
+someFunction((t1, t2) -> t1 + t2)
+```
+{% endtab %}
+{% endtabs %}
+
 #### Initializer Expression
+
+Initializer expressions behave like a reference to an initializer, not a call, and are a special version of the [explicit member expressions](expressions.md#explicit-member-expression). As such, a translation strategy uses lambda expressions or constructor references \(see `f1`, `f2` and `f3` in the example\). It is up to the optimizer to detect a call to a functional method of a new lambda expression \(`s1`, `s2`, `s3`\).
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+let f1: (Int) -> String = String.init
+let s1 = SomeType.init(data: 3)
+let f2 = SomeType.init(data:)
+let s2 = SomeType(data: 1)
+let s3 = type(of: someValue).init(data: 7)
+let f3 = type(of: someValue).init(data:)
+
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+Function<Integer, String> f1= String::new;
+SomeType s1 = new SomeType(3);
+Function<Integer, SomeType> f2 = SomeType::new;
+SomeType s2 = new SomeType(1);
+SomeType s3 = Runtime.newInstance(someValue.getClass(), 7);
+Class t1 = someValue.getClass;
+Function<Integer, SomeType> f3 = t2 -> Runtime.newInstance(t1, t2);
+```
+{% endtab %}
+{% endtabs %}
 
 #### Explicit Member Expression
 
+Explicit member expressions can refer to many different things with wildly different Java equivalents.
+
+If the identifier refers to a submodule or class, it translates as-is.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+SomeModule.SomeSubModule.SomeClass
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+somemodule.somesubmodule.SomeClass
+```
+{% endtab %}
+{% endtabs %}
+
+If it refers to a property, a call to the getter is generated. Assignments to the expression translate to a setter call. This also applies to tuple access or modification.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+let c = SomeClass()
+let y = c.someProperty
+c.someProperty = 3
+var t = (10, 20, 30)
+t.0 = t.1
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+final SomeClass c = new SomeClass();
+final int y = c.getSomeProperty();
+c.setSomeProperty(3);
+Tuple<Integer, Integer, Integer> t = Tuple.of(10, 20, 30);
+t.set0(t.get1());
+```
+{% endtab %}
+{% endtabs %}
+
+Explicit member expressions referring to methods, like [initializer expressions](expressions.md#initializer-expression), become method references.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+let b = instance.someMethod(x:y:)
+let d: (Int, Bool) -> Void  = instance.overloadedMethod(x:y:)
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+final BiFunction<Integer, Integer, Void> b = instance::someMethodXY;
+final BiFunction<Integer, Integer, Void> d = instance::overloadedMethodXY;
+```
+{% endtab %}
+{% endtabs %}
+
 #### Postfix Self Expression
+
+To translate the expression variant of this, all that needs to be done is removing the `.self`. The type variant is equivalent to the `.class` suffix in Java.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+x.self
+x.self = y
+SomeType.self
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+x
+x = y
+SomeType.class
+```
+{% endtab %}
+{% endtabs %}
 
 #### Subscript Expression
 
+A subscript expression translates to a call to `get`, or `put` when it is assigned to.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+foo[bar]
+foo[bar, baz]
+foo[bar] = baz
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+foo.get(bar)
+foo.get(bar, baz)
+foo.put(bar, baz)
+```
+{% endtab %}
+{% endtabs %}
+
 #### Forced-Value Expression
 
+The force unwrap operator can be translated by omission, but is more useful to insert code that triggers a `NullPointerException` at its use site instead of later. When the forced-value expression is immediately followed by a virtual method call, the helper code is not necessary as the call triggers the exception if the receiver is `null`.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+let a = b!
+b!.someMethod()
+var x: Int? = 0
+x! += 1
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+b.getClass(); final String a = b;
+b.someMethod();
+Integer x = Integer.valueOf(0)
+x = Integer.valueOf(x.intValue() + 1)
+```
+{% endtab %}
+{% endtabs %}
+
 #### Optional-Chaining Expression
+
+TODO
 
