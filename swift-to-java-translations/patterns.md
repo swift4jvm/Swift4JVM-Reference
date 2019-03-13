@@ -1,3 +1,7 @@
+---
+description: 'https://docs.swift.org/swift-book/ReferenceManual/Patterns.html'
+---
+
 # Patterns
 
 ### Wildcard Pattern
