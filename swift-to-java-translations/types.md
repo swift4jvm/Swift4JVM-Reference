@@ -38,11 +38,45 @@ TBD
 
 ### Array Type
 
-TBD
+Array types, i.e. the syntactic sugar for the generic Swift type `Array<T>`, are mapped to Java's array types. See [Literal Expression](expressions.md#literal-expression) for information about the translation of array _literals_.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+let someArray: Array<String> = ["Alex", "Brian", "Dave"]
+let someArray: [String] = ["Alex", "Brian", "Dave"]
+var array3D: [[[Int]]] = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+final String[] someArray = { "Alex", "Brian", "Dave" };
+final String[] someArray = { "Alex", "Brian", "Dave" };
+final int[][][] array3D = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
+```
+{% endtab %}
+{% endtabs %}
 
 ### Dictionary Type
 
-TBD
+Dictionary types, i.e. the Swift type `Dictionary<K, V>`, are translated to `Map<K, V>`. See [Literal Expression](expressions.md#literal-expression) for information about the translation of dictionary _literals_.
+
+{% tabs %}
+{% tab title="Swift" %}
+```swift
+let someDictionary: [String: Int] = ["Alex": 31, "Paul": 39]
+let someDictionary: Dictionary<String, Int> = ["Alex": 31, "Paul": 39]
+```
+{% endtab %}
+
+{% tab title="Java" %}
+```java
+Map<String, Integer> someDictionary = /* ... */;
+Map<String, Integer> someDictionary = /* ... */;
+```
+{% endtab %}
+{% endtabs %}
 
 ### Optional Type
 
